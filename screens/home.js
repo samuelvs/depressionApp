@@ -1,4 +1,4 @@
-import { Image, ImageBackground, View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { Image, ImageBackground, View, StyleSheet, Text,RefreshControl, TouchableOpacity, ScrollView, ActivityIndicator, } from 'react-native';
 import { useEffect, useState, useCallback  } from 'react';
 import { useNavigation, } from '@react-navigation/native';
 import { getAuth, signOut } from "firebase/auth";
@@ -11,17 +11,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default Home = () => {
   const navigator = useNavigation();
   const [resulties, setResulties] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refresing, setRefresing] = useState(true);
   const auth = getAuth();
 
   const getData = useCallback(async () => {
     try {
-        const answersQuery = query(collection(db, 'users', auth.currentUser.uid, 'answers'), orderBy('timestamp', 'desc'));
-        const answersSnapshot = await getDocs(answersQuery);
-      
-        const results = answersSnapshot.docs.map(doc => doc.data().metadata);
-        setResulties(results);
+      const answersQuery = query(collection(db, 'users', auth.currentUser.uid, 'answers'), orderBy('timestamp', 'desc'));
+      const answersSnapshot = await getDocs(answersQuery);
+    
+      const results = answersSnapshot.docs.map(doc => doc.data().metadata);
+      setResulties(results);
     } catch (e) {
       console.log(e);
+    } finally {
+      setRefresing(false);
     }
   }, []);
 
@@ -48,11 +52,15 @@ export default Home = () => {
     }
   }
 
+  const onRefresh = useCallback(async () => {
+    setRefresing(true);
+    await getData(); 
+    setRefresing(false);
+  }, []);
+
   return (
     <ImageBackground style={styles.img} source={require('../assets/Home.png')}>
-      <TouchableOpacity
-              style={styles.logout}  onPress={() => logout()}
-              >
+      <TouchableOpacity style={styles.logout}  onPress={() => logout()}>
        <Image style={styles.logoutImg} source={require('../assets/logout.png')}/>
       </TouchableOpacity>
       <View style={styles.container}>
@@ -64,7 +72,14 @@ export default Home = () => {
           <Text style={styles.text}>Resultados</Text>
         </View>
 
-        <ScrollView style={{ height: 450 }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refresing}
+              onRefresh={onRefresh}
+              colors={['#240F74']} // Adicione cores de carregamento (opcional)
+            />}>
           <View style={styles.resultCards}>
             <TouchableOpacity
                 style={styles.button}
@@ -95,6 +110,15 @@ const styles = StyleSheet.create({
     width: null,
     height: null,
   },
+  overlay: {
+    height: '100%',
+    width: '100%',
+    position: 'absolute',
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+  },
   logout: {
     position: 'absolute',
     top: 70,
@@ -121,15 +145,14 @@ const styles = StyleSheet.create({
   },
   resultContainer: {
     position: 'absolute',
-    top: '37%',
+    bottom: 0,
     width: '100%',
-    //backgroundColor: '#735DB8',
     zIndex: 1,
+    height: '65%'
   },
   textContainer: {
     width: '40%',
     height: 40,
-    marginBottom: 20,
     backgroundColor: '#735DB8',
     alignItems: 'center',
     justifyContent: 'center',
@@ -145,5 +168,7 @@ const styles = StyleSheet.create({
     width: '60%',
     gap: 50,
     alignSelf: 'center',
+    paddingTop: 20,
+    paddingBottom: 100,
   },
 });

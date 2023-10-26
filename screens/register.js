@@ -22,11 +22,13 @@ function Register({navigation}) {
   });
 
   async function signUp() {
+    setLoading(true);
     if (value.email === "" || value.password === "") {
       setValue({
         ...value,
         error: "Email and password are mandatory.",
       });
+      setLoading(false);
       return;
     }
 
@@ -37,12 +39,12 @@ function Register({navigation}) {
         value.email,
         value.password
       );
-      const user = userCredential.user;
-      await signInWithEmailAndPassword(auth, user.email, user.password);
       
-      const dataToSave = `${user.email}:${user.password}`;
+      await signInWithEmailAndPassword(auth, value.email, value.password);
+      const dataToSave = `${value.email}:${value.password}`;
       await AsyncStorage.setItem('userData', dataToSave);
     } catch (error) {
+      console.log(error);
       setValue({
         ...value,
         error: error.message,
@@ -83,6 +85,7 @@ function Register({navigation}) {
             onChangeText={(text) => setValue({ ...value, password: text })}
             secureTextEntry={true}
           />
+          <Text style={styles.error}>{value?.error}</Text>
           <TouchableOpacity style={styles.buttonLogin} onPress={signUp}>
             <Text style={styles.text}>CADASTRAR</Text>
           </TouchableOpacity>
@@ -95,6 +98,9 @@ function Register({navigation}) {
 export default Register;
 
 const styles = StyleSheet.create({
+  error:{
+    color: 'red'
+  },
   back: {
     position: 'absolute',
     top: 70,

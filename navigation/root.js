@@ -55,6 +55,13 @@ const styles = StyleSheet.create({
       left: 20,
       zIndex: 1,
     },
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(255,255,255,0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1,
+    },
     backImg: {
       width: 30,
       height: 30,
