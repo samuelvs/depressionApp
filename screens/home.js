@@ -42,14 +42,16 @@ export default Home = () => {
     await AsyncStorage.removeItem('userData');
   }
   
-  const onSelect = (result) => {
-    if(!result) {
-      navigator.navigate('Questionary');
-    } else {
-      navigator.navigate('Result', {
-        metadata: result
-      })
-    }
+  const onSelect = (index) => {
+    const data = [...resulties].reverse();
+    console.log(index);
+    const to = (resulties.length - index) - 1;
+    console.log(data.filter((el,i) => i <= to).map(el => el.value));
+
+    navigator.navigate('Result', {
+      metadata: resulties[index],
+      list: data.filter((el,i) => i <= to)
+    })
   }
 
   const onRefresh = useCallback(async () => {
@@ -83,7 +85,7 @@ export default Home = () => {
           <View style={styles.resultCards}>
             <TouchableOpacity
                 style={styles.button}
-                onPress={() => onSelect()}
+                onPress={() => navigator.navigate('Questionary')}
               >
                 <ResultCard />
               </TouchableOpacity>
@@ -91,7 +93,7 @@ export default Home = () => {
               <TouchableOpacity
                 key={index}
                 style={styles.button}
-                onPress={() => onSelect(result)}
+                onPress={() => onSelect(index)}
               >
                 <ResultCard result={result}/>
               </TouchableOpacity>
